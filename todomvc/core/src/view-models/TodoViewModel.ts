@@ -223,7 +223,7 @@ export class TodoViewModel extends ReactiveObject {
             completedTodos.forEach(t => {
                 t.completed = true;
             });
-            this.todos = completedTodos;
+            this.todos = completedTodos.slice();
             return this.save.executeAsync();
         }, canMarkAllComplete);
         this._markAllIncomplete = ReactiveCommand.createFromObservable(a => {
@@ -231,7 +231,7 @@ export class TodoViewModel extends ReactiveObject {
             incompleteTodos.forEach(t => {
                 t.completed = false;
             });
-            this.todos = incompleteTodos;
+            this.todos = incompleteTodos.slice();
             return this.save.executeAsync();
         }, canMarkAllIncomplete);
         this._toggleAllComplete = ReactiveCommand.createFromObservable(a => {
@@ -253,7 +253,7 @@ export class TodoViewModel extends ReactiveObject {
                     todos.splice(i, 1);
                 }
             }
-            this.todos = todos;
+            this.todos = todos.slice();
             return this.save.executeAsync();
         }, isNotSaving);
     }

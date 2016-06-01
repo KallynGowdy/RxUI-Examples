@@ -74,6 +74,15 @@ export function register() {
                 }, err => done(err));
             });
         });
+        
+        describe("#editTodo", () => {
+           it("should set editedTodo to the given todo", () => {
+               var viewModel = new TodoViewModel(<any>{});
+               var t = new Todo();
+               viewModel.editTodo.executeAsync(t).subscribe();
+               expect(viewModel.editedTodo).to.equal(t);
+           });
+        });
 
         describe("#toggleTodo()", () => {
             it("should call putTodos() on the TodoStorage service after call", () => {

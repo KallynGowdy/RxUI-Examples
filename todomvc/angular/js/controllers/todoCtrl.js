@@ -14,19 +14,16 @@
             todoViewModel.whenAnyValue("todos")
                 .subscribe(todos => $scope.todos = todos);
 
-            
-
             $scope.addTodo = function() {
                 todoViewModel.addTodo.invokeAsync().subscribe();
             };
             
             $scope.editTodo = function(todo) {
-                todoViewModel.editTodo(todo);
+                todoViewModel.editTodo.invokeAsync(todo).subscribe();
             };
             
             $scope.doneEditing = function(todo, index) {
-                // Done editing
-                todoViewModel.edit.invokeAsync().subscribe();
+                todoViewModel.finishEditing.invokeAsync().subscribe();
             };
             
             $scope.revertEdits = function(todo, event) {
@@ -48,5 +45,7 @@
             $scope.markAll = function() {
                 todoViewModel.toggleAllComplete.invokeAsync().subscribe();
             };
+            
+            RxUI.ReactiveObject.bindObservable(todoViewModel.areAllCompleted, $scope, "allTodosComplete");
         });
 });

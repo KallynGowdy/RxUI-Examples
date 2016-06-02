@@ -4,16 +4,21 @@
   "description": "An example RxUI Application that integrates with AngularJS 1.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "live-server"
   },
   "author": "Kallyn Gowdy <kallyngowdy@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "angular": "^1.5.5",
+    "angular-resource": "^1.5.6",
+    "angular-route": "^1.5.6",
     "rxui-example-core": "../core",
+    "todomvc-app-css": "^2.0.6",
     "todomvc-common": "^1.0.2"
   },
   "devDependencies": {
-    "webpack": "^1.12.14"
+    "webpack": "^1.12.14",
+    "live-server": "^1.0.0"
   }
 }

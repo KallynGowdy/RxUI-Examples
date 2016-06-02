@@ -42,9 +42,8 @@ export function register() {
         });
 
         describe("#newTodo", () => {
-            it("should never be null", () => {
+            it("should not be null", () => {
                 var viewModel = new TodoViewModel(<any>{});
-
                 expect(viewModel.newTodo).not.to.be.null;
             });
         });

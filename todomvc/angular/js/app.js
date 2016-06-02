@@ -7,22 +7,14 @@
      * 
      * @type {angular.Module}
      */
-    angular.module('todomvc', ['todoCtrl', 'todoViewModel'])
-        .config(function($routerProvider) {
+    angular.module('todomvc', ['ngRoute', 'ngResource', 'todoCtrl', 'todoViewModel'])
+        .config(function($routeProvider) {
             var routeConfig = {
                 controller: 'TodoCtrl',
-                templateUrl: 'todomvc-index.html',
-                resolve: {
-                    store: function(todoStorage) {
-                        return todoStorage.then(function(module) {
-                           module.get();
-                           return module; 
-                        });
-                    }
-                }
+                templateUrl: '/todomvc-index.html'
             };
             
-            $routerProvider
+            $routeProvider
                 .when('/', routeConfig)
                 .when('/:status', routeConfig)
                 .otherwise({

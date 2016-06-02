@@ -65,12 +65,7 @@ export class TodoViewModel extends ReactiveObject {
      * Gets the TODO that is being created.
      */
     public get newTodo(): Todo {
-        var todo = this.get("newTodo");
-        if (!todo) {
-            todo = new Todo();
-            this.newTodo = todo;
-        }
-        return todo;
+        return this.get("newTodo");
     }
 
     /**
@@ -151,7 +146,7 @@ export class TodoViewModel extends ReactiveObject {
             (validTodo, isNotSaving) => validTodo && isNotSaving);
 
         this.addTodo = ReactiveCommand.createFromObservable((a) => {
-            this.todos.push(this.newTodo);
+            this.todos.unshift(this.newTodo.copy());
             this.resetNewTodo();
             return this.save.executeAsync();
         }, canAddTodo);
@@ -233,7 +228,8 @@ export class TodoViewModel extends ReactiveObject {
         }, isNotSaving);
     }
 
-    public resetNewTodo(): Todo {
-        return this.newTodo = new Todo();
+    public resetNewTodo(): void {
+        this.newTodo.title = "";
+        this.newTodo.completed = false;
     }
 }

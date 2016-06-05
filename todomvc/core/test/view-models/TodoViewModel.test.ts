@@ -72,6 +72,21 @@ export function register() {
                     done();
                 }, err => done(err));
             });
+            it("should add the new todo to the incomplete todos list", (done) => {
+                var service = {
+                    putTodos: (todos) => Promise.resolve(true)
+                };
+                var viewModel = new TodoViewModel(<any>service);
+                viewModel.todos = [];
+                viewModel.newTodo.title = "Title";
+                
+                expect(viewModel.todos.length).to.equal(0);
+                viewModel.addTodo.invokeAsync().subscribe(result => {
+                    expect(viewModel.incompleteTodos.length).to.equal(1);
+                    expect(viewModel.incompleteTodos[0].title).to.equal("Title");
+                    done();
+                }, err => done(err));
+            });
         });
         
         describe("#editTodo", () => {
@@ -124,6 +139,21 @@ export function register() {
 
                 viewModel.toggleTodo.invokeAsync(todos[0]).take(1).subscribe(() => {
                     expect(todos[0].completed).to.be.false;
+                    done();
+                }, err => done(err));
+            });
+            it("should move the incomplete todo from #incompleteTodos to #completedTodos", (done) => {
+                var todos: Todo[] = [
+                    new Todo("Todo", false)
+                ];
+                var viewModel = new TodoViewModel(<any>{
+                    putTodos: () => Promise.resolve(true)
+                });
+                viewModel.todos = todos;
+                
+                viewModel.toggleTodo.invokeAsync(todos[0]).subscribe(() => {
+                    expect(viewModel.completedTodos.length).to.equal(1);
+                    expect(viewModel.completedTodos[0].title).to.equal("Todo");
                     done();
                 }, err => done(err));
             });

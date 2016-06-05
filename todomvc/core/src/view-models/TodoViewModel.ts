@@ -23,6 +23,7 @@ export class TodoViewModel extends ReactiveObject {
     public markAllIncomplete: ReactiveCommand<{}, boolean>;
     public toggleAllComplete: ReactiveCommand<{}, boolean>;
     public clearComplete: ReactiveCommand<{}, boolean>;
+    public areAllTodosComplete: Observable<boolean>;
 
     public get completedTodos(): Todo[] {
         return this.get("completedTodos");
@@ -30,8 +31,6 @@ export class TodoViewModel extends ReactiveObject {
     public get incompleteTodos(): Todo[] {
         return this.get("incompleteTodos");
     }
-
-    public areAllTodosComplete: Observable<boolean>;
 
     /**
      * Gets the array of TODOs that are being presented by this view model.
@@ -131,6 +130,7 @@ export class TodoViewModel extends ReactiveObject {
 
         this.toggleTodo = ReactiveCommand.createFromObservable((todo: Todo) => {
             todo.completed = !todo.completed;
+            this.todos = this.todos.slice();
             return this.save.executeAsync();
         }, isNotSaving);
 
@@ -148,6 +148,7 @@ export class TodoViewModel extends ReactiveObject {
         this.addTodo = ReactiveCommand.createFromObservable((a) => {
             this.todos.unshift(this.newTodo.copy());
             this.resetNewTodo();
+            this.todos = this.todos.slice();
             return this.save.executeAsync();
         }, canAddTodo);
 

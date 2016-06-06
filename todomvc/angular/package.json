@@ -14,7 +14,7 @@
     "angular-resource": "^1.5.6",
     "angular-route": "^1.5.6",
     "rxui-example-core": "../core",
-    "todomvc-app-css": "^2.0.6",
+    "todomvc-app-css": "^1.0.1",
     "todomvc-common": "^1.0.2"
   },
   "devDependencies": {

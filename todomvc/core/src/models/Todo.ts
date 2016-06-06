@@ -5,19 +5,18 @@ import {ReactiveObject} from "rxui";
  */
 export class Todo extends ReactiveObject {
     
-    public toJson(): string {
-        return JSON.stringify({
+    public toJSON(): any {
+        return {
             title: this.title,
             completed: this.completed
-        });
+        };
     }
     
-    public static fromJson(json: string): Todo {
-        var obj = JSON.parse(json);
+    public static fromJSON(obj: any): Todo {
         if(obj) {
             var todo = new Todo();
-            todo.title = obj.title;
-            todo.completed = obj.completed;
+            todo.title = obj.title || null;
+            todo.completed = obj.completed || null;
             return todo;
         }
         return null;

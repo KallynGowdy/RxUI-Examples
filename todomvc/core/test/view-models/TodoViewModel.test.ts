@@ -158,6 +158,12 @@ export function register() {
                 }, err => done(err));
             });
         });
+        
+        describe("#todos.completed", () => {
+           it("should detect when a todo is completed and update the incompleteTodos", (done) => {
+               
+           });
+        });
 
         describe("#deleteTodo", () => {
             it("should do nothing if the given TODO does not exist in the view model", (done) => {

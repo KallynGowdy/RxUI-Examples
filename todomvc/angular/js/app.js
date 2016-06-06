@@ -10,7 +10,7 @@
     angular.module('todomvc', ['ngRoute', 'ngResource', 'todoCtrl', 'todoViewModel'])
         .config(function($routeProvider) {
             var routeConfig = {
-                controller: 'TodoCtrl',
+                controller: 'TodoCtrl as ctrl',
                 templateUrl: '/todomvc-index.html'
             };
             

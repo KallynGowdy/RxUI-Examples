@@ -8,9 +8,9 @@
          * In a traditional MVVM senario, this corresponds to the code-behind our view. 
          * As such, the entire purpose for this controller is to handle UI events and pipe them to the view model.  
          */
-        .controller('TodoCtrl', function TodoCtrl($scope, todoViewModel) {
-
-            $scope.__viewBindingHelper = {
+        .controller('TodoCtrl', function TodoCtrl($scope, $routeParams, todoViewModel) {
+            var _this = this;
+            this.__viewBindingHelper = {
                 observeProp: function (obj, property, emitCurrentVal, callback) {
                     if (emitCurrentVal) {
                         callback(new RxUI.PropertyChangedEventArgs(obj, obj[property], newValue));
@@ -23,44 +23,66 @@
                 }
             };
 
-            todoViewModel.whenAnyValue("todos")
-                .subscribe(todos => $scope.todos = todos);
+            $scope.$on('$routeChangeSuccess', function () {
+                if ($routeParams.status === 'completed')
+                    _this.status = 'complete';
+                else if ($routeParams.status === 'active')
+                    _this.status = 'incomplete';
+                else {
+                    _this.status = 'all';
+                }
+            });
 
-            $scope.addTodo = function () {
+            this.addTodo = function () {
                 todoViewModel.addTodo.invokeAsync().subscribe();
             };
 
-            $scope.editTodo = function (todo) {
+            this.editTodo = function (todo) {
                 todoViewModel.editTodo.invokeAsync(todo).subscribe();
             };
 
-            $scope.doneEditing = function (todo, index) {
+            this.saveEdits = function (todo, index) {
                 todoViewModel.finishEditing.invokeAsync().subscribe();
             };
 
-            $scope.revertEdits = function (todo, event) {
+            this.revertEdits = function (todo, event) {
                 todoViewModel.undo.invokeAsync().subscribe();
             };
 
-            $scope.removeTodo = function (todo) {
+            this.removeTodo = function (todo) {
                 todoViewModel.deleteTodo.invokeAsync(todo).subscribe();
             };
 
-            $scope.toggleCompleted = function (todo) {
+            this.toggleCompleted = function (todo) {
                 todoViewModel.toggleTodo.invokeAsync(todo).subscribe();
             };
 
-            $scope.clearCompletedTodos = function () {
+            this.clearCompletedTodos = function () {
                 todoViewModel.clearComplete.invokeAsync().subscribe();
             };
 
-            $scope.markAll = function () {
+            this.markAll = function () {
                 todoViewModel.toggleAllComplete.invokeAsync().subscribe();
             };
 
-            todoViewModel.bind($scope, "newTodo.title", "newTodo");
-            todoViewModel.oneWayBind($scope, "todos", "todos");
-            RxUI.ReactiveObject.bindObservable(todoViewModel.areAllTodosComplete, $scope, "allChecked");
-            todoViewModel.loadTodos.invokeAsync();
+            var d = [
+                todoViewModel.bind(this, "newTodo.title", "newTodo"),
+                todoViewModel.bind(this, "status", "status"),
+                todoViewModel.oneWayBind(this, "incompleteTodos", "remaining"),
+                todoViewModel.oneWayBind(this, "editedTodo", "editedTodo"),
+                todoViewModel.oneWayBind(this, "visibleTodos", "todos"),
+                todoViewModel.oneWayBind(this, "todos", "totalTodos"),
+                RxUI.ReactiveObject.bindObservable(
+                    todoViewModel.areAllTodosComplete,
+                    this,
+                    "allChecked"),
+                todoViewModel.loadTodos.invokeAsync().subscribe()
+            ];
+            
+            $scope.$on("$destroy", function() {
+               d.forEach(function(sub) {
+                   sub.unsubscribe();
+               });
+            });
         });
 })();

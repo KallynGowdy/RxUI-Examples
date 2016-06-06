@@ -31,6 +31,9 @@ export class TodoViewModel extends ReactiveObject {
     public get incompleteTodos(): Todo[] {
         return this.get("incompleteTodos");
     }
+    public get visibleTodos(): Todo[] {
+        return this.get("visibleTodos");
+    }
 
     /**
      * Gets the array of TODOs that are being presented by this view model.
@@ -72,6 +75,16 @@ export class TodoViewModel extends ReactiveObject {
      */
     public set newTodo(todo: Todo) {
         this.set("newTodo", todo);
+    }
+
+    public get status(): string {
+        return this.get("status");
+    }
+    public set status(status: string) {
+        // if (["all", "incomplete", "complete"].indexOf(status) < 0) {
+        //     throw new Error("status must be either 'all', 'incomplete' or 'complete'");
+        // }
+        this.set("status", status);
     }
 
     /**
@@ -121,10 +134,12 @@ export class TodoViewModel extends ReactiveObject {
         this.deleteTodo = ReactiveCommand.createFromObservable((a: Todo) => {
             var todoIndex = this.todos.indexOf(a);
             if (todoIndex >= 0) {
+                // TODO: Improve to notify via an observable array
                 this.todos.splice(todoIndex, 1);
+                this.todos = this.todos.slice();
+
                 return this.save.executeAsync();
             }
-
             return Observable.of(false);
         });
 
@@ -157,10 +172,9 @@ export class TodoViewModel extends ReactiveObject {
             this.editedTodo = todo;
             return {};
         });
-        
+
         this.finishEditing = ReactiveCommand.createFromObservable(a => {
             if (this.editedTodo) {
-                this.todos.push(this.editedTodo);
                 this.editedTodo = null;
             }
             return this.save.executeAsync().do(saved => {
@@ -174,10 +188,12 @@ export class TodoViewModel extends ReactiveObject {
         var canUndo = this.whenAnyValue(vm => vm.editedTodo, vm => vm.todos, (e, todos) => e !== null && todos !== null);
 
         this.undo = ReactiveCommand.create(a => {
-            var index = this.todos.indexOf(this.editedTodo);
-            this.todos[index] = this._originalTodo;
-            this._originalTodo = null;
+            if (this.editedTodo && this._originalTodo) {
+                this.editedTodo.title = this._originalTodo.title;
+                this.editedTodo.completed = this._originalTodo.completed;
+            }
             this.editedTodo = null;
+            this._originalTodo = null;
             return true;
         }, canUndo);
 
@@ -227,6 +243,20 @@ export class TodoViewModel extends ReactiveObject {
             this.todos = todos.slice();
             return this.save.executeAsync();
         }, isNotSaving);
+
+        this.whenAnyValue(vm => vm.todos, vm => vm.status, (todos, status) => ({ todos, status }))
+            .map(args => {
+                if (args.status === "all") {
+                    return args.todos;
+                } else if (args.status === "complete") {
+                    return args.todos.filter(t => t.completed);
+                } else {
+                    return args.todos.filter(t => !t.completed);
+                }
+            }).subscribe(todos => {
+                this.set("visibleTodos", todos);
+            });
+        this.status = "all";
     }
 
     public resetNewTodo(): void {

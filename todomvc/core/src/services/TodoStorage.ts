@@ -46,7 +46,9 @@ export class LocalTodoStorage implements TodoStorage {
 
     getTodos(): Promise<Todo[]> {
         return new Promise((resolve, reject) => {
-            resolve(JSON.parse(localStorage.getItem(LocalTodoStorage.STORAGE_ID) || "[]"));
+            var storedTodos: any[] = JSON.parse(localStorage.getItem(LocalTodoStorage.STORAGE_ID) || "[]");
+            var finalTodos: Todo[] = storedTodos.map(t => Todo.fromJSON(t));
+            resolve(finalTodos);
         });
     }
 

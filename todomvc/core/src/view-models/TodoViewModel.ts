@@ -99,8 +99,7 @@ export class TodoViewModel extends ReactiveObject {
      * @param title The title that should be evaluated.
      */
     private isValidTitle(title: string): boolean {
-        var valid = !!title.trim();
-        return valid;
+        return title !== null && !!title.trim();
     }
 
     constructor(todoStore: TodoStorage) {
@@ -125,9 +124,11 @@ export class TodoViewModel extends ReactiveObject {
             this.todos = todos;
         });
         this.whenAnyValue(vm => vm.todos)
+            .filter(todos => todos !== null)
             .map(todos => todos.filter(t => t.completed))
             .subscribe(completed => this.set("completedTodos", completed));
         this.whenAnyValue(vm => vm.todos)
+            .filter(todos => todos !== null)
             .map(todos => todos.filter(t => !t.completed))
             .subscribe(incomplete => this.set("incompleteTodos", incomplete));
 
@@ -138,7 +139,7 @@ export class TodoViewModel extends ReactiveObject {
                 this.todos.splice(todoIndex, 1);
                 this.todos = this.todos.slice();
 
-                return this.save.executeAsync();
+                return this.save.execute();
             }
             return Observable.of(false);
         });
@@ -146,7 +147,7 @@ export class TodoViewModel extends ReactiveObject {
         this.toggleTodo = ReactiveCommand.createFromObservable((todo: Todo) => {
             todo.completed = !todo.completed;
             this.todos = this.todos.slice();
-            return this.save.executeAsync();
+            return this.save.execute();
         }, isNotSaving);
 
         var hasValidNewTodo = this.whenAnyValue(vm => {
@@ -164,7 +165,7 @@ export class TodoViewModel extends ReactiveObject {
             this.todos.unshift(this.newTodo.copy());
             this.resetNewTodo();
             this.todos = this.todos.slice();
-            return this.save.executeAsync();
+            return this.save.execute();
         }, canAddTodo);
 
         this.editTodo = ReactiveCommand.create((todo: Todo) => {
@@ -177,7 +178,7 @@ export class TodoViewModel extends ReactiveObject {
             if (this.editedTodo) {
                 this.editedTodo = null;
             }
-            return this.save.executeAsync().do(saved => {
+            return this.save.execute().do(saved => {
                 if (saved) {
                     this._originalTodo = null;
                     this.editedTodo = null;
@@ -198,8 +199,10 @@ export class TodoViewModel extends ReactiveObject {
         }, canUndo);
 
         var areAllComplete = this.whenAnyValue(vm => vm.todos)
+            .filter(todos => todos !== null)
             .map(todos => todos.every(t => t.completed));
         var hasTodos = this.whenAnyValue(vm => vm.todos)
+            .filter(todos => todos !== null)
             .map(todos => todos.length > 0);
         var canMarkAllComplete = Observable.combineLatest(hasTodos, areAllComplete, isNotSaving, (hasTodos, complete, notSaving) => hasTodos && !complete && notSaving);
         var canMarkAllIncomplete = Observable.combineLatest(hasTodos, areAllComplete, isNotSaving, (hasTodos, complete, notSaving) => hasTodos && complete && notSaving);
@@ -210,7 +213,7 @@ export class TodoViewModel extends ReactiveObject {
                 t.completed = true;
             });
             this.todos = completedTodos.slice();
-            return this.save.executeAsync();
+            return this.save.execute();
         }, canMarkAllComplete);
 
         this.markAllIncomplete = ReactiveCommand.createFromObservable(a => {
@@ -219,19 +222,19 @@ export class TodoViewModel extends ReactiveObject {
                 t.completed = false;
             });
             this.todos = incompleteTodos.slice();
-            return this.save.executeAsync();
+            return this.save.execute();
         }, canMarkAllIncomplete);
 
         this.toggleAllComplete = ReactiveCommand.createFromObservable(a => {
             var allComplete = this.todos.every(t => t.completed);
             if (allComplete) {
-                return this.markAllIncomplete.executeAsync();
+                return this.markAllIncomplete.execute();
             } else {
-                return this.markAllComplete.executeAsync();
+                return this.markAllComplete.execute();
             }
         }, isNotSaving);
 
-        this.areAllTodosComplete = Observable.combineLatest(hasTodos, areAllComplete, (hasTodos, complete) => hasTodos && complete);
+        this.areAllTodosComplete = Observable.zip(hasTodos, areAllComplete, (hasTodos, complete) => hasTodos && complete);
         this.clearComplete = ReactiveCommand.createFromObservable(a => {
             var todos = this.todos;
             for (var i = todos.length - 1; i >= 0; i--) {
@@ -241,10 +244,11 @@ export class TodoViewModel extends ReactiveObject {
                 }
             }
             this.todos = todos.slice();
-            return this.save.executeAsync();
+            return this.save.execute();
         }, isNotSaving);
 
         this.whenAnyValue(vm => vm.todos, vm => vm.status, (todos, status) => ({ todos, status }))
+            .filter(args => args.todos !== null)
             .map(args => {
                 if (args.status === "all") {
                     return args.todos;

@@ -135,10 +135,10 @@ export class TodoViewModel extends ReactiveObject {
 
         var areAllComplete = this.whenAnyValue(vm => vm.todos)
             .filter(todos => todos !== null)
-            .map(todos => todos.every(t => t.completed));
+            .flatMap(todos => todos.computed.every(t => t.completed));
         var hasTodos = this.whenAnyValue(vm => vm.todos)
             .filter(todos => todos !== null)
-            .map(todos => todos.length > 0);
+            .flatMap(todos => todos.whenAnyValue(t => t.length).map(length => length > 0));
         var canMarkAllComplete = Observable.combineLatest(hasTodos, areAllComplete, isNotSaving, (hasTodos, complete, notSaving) => hasTodos && !complete && notSaving);
         var canMarkAllIncomplete = Observable.combineLatest(hasTodos, areAllComplete, isNotSaving, (hasTodos, complete, notSaving) => hasTodos && complete && notSaving);
         this.areAllTodosComplete = Observable.zip(hasTodos, areAllComplete, (hasTodos, complete) => hasTodos && complete);

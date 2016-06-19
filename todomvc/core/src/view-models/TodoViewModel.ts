@@ -176,9 +176,9 @@ export class TodoViewModel extends ReactiveObject {
                 if (args.status === "all") {
                     return args.todos;
                 } else if (args.status === "complete") {
-                    return args.todos.filter(t => t.completed);
+                    return args.todos.derived.whenAnyItemProperty().filter(t => t.completed).build();
                 } else {
-                    return args.todos.filter(t => !t.completed);
+                    return args.todos.derived.whenAnyItemProperty().filter(t => !t.completed).build();
                 }
             }).subscribe(todos => {
                 this.set("visibleTodos", todos);

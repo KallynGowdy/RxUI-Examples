@@ -1,0 +1,8 @@
+<div class="view">
+    <input class="toggle" type="checkbox" [checked]="todo.completed" (click)="toggleCompleted()">
+    <label (dblclick)="editTodo()">{{todo.title}}</label>
+    <button class="destroy" (click)="removeTodo()"></button>
+</div>
+<form (submit)="saveEdits()">
+    <input #input class="edit" [(ngModel)]="todo.title" (keyup.escape)="revertEdits()" (blur)="saveEdits()">
+</form>

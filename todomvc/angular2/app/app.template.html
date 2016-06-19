@@ -2,15 +2,15 @@
     <header id="header">
         <h1>todos</h1>
         <form id="todo-form" (submit)="addTodo()">
-            <input id="new-todo" placeholder="What needs to be done?" [(ngModel)]="newTodo" [disabled]="saving" autofocus>
+            <input id="new-todo" placeholder="What needs to be done?" [(ngModel)]="viewModel.newTodo.title" [disabled]="saving" autofocus>
         </form>
     </header>
-    <section id="main" *ngIf="todos.length">
-        <input id="toggle-all" type="checkbox" ng-model="allChecked" (keyup)="0" (click)="markAll(allChecked)">
+    <section id="main" *ngIf="viewModel.visibleTodos.length">
+        <input id="toggle-all" type="checkbox" [(ngModel)]="allChecked" (keyup)="0" (change)="markAll(allChecked)">
         <label for="toggle-all">Mark all as complete</label>
         <ul id="todo-list">
-            <li *ngFor="let todo of todos" [class.completed]="todo.completed" [class.editing]="todo == editedTodo">
-                <div class="view">
+            <li *ngFor="let todo of todos" [class.completed]="todo.completed" [class.editing]="todo == viewModel.editedTodo">
+                <!--<div class="view">
                     <input class="toggle" type="checkbox" [checked]="todo.completed" (click)="toggleCompleted(todo)">
                     <label (dblclick)="editTodo(todo)">{{todo.title}}</label>
                     <button class="destroy" (click)="removeTodo(todo)"></button>
@@ -18,27 +18,28 @@
                 <form (submit)="saveEdits(todo, 'submit')">
                     <input class="edit" ng-trim="false" [(ngModel)]="todo.title" (keyup.escape)="revertEdits(todo)" (blur)="saveEdits(todo, 'blur')"
                         (focus)="todo == editedTodo">
-                </form>
+                </form>-->
+                <todo-detail [todo]="todo"></todo-detail>
             </li>
         </ul>
     </section>
-    <footer id="footer" *ngIf="totalTodos.length">
+    <footer id="footer" *ngIf="viewModel.todos.length">
         <span id="todo-count">
-            <strong>{{remaining.length}}</strong>
-			<ng-pluralize count="remaining.length" when="{ one: 'item left', other: 'items left' }"></ng-pluralize>
+            <strong>{{viewModel.incompleteTodos.length}}</strong>
+            {{remainingText}}
 		</span>
         <ul id="filters">
             <li>
-                <a [class.selected]="status == 'all'" href="#/">All</a>
+                <a (click)="viewModel.status = 'all'" [class.selected]="viewModel.status == 'all'" href="#/">All</a>
             </li>
             <li>
-                <a [class.selected]="status == 'incomplete'" href="#/active">Active</a>
+                <a (click)="viewModel.status = 'incomplete'" [class.selected]="viewModel.status == 'incomplete'" href="#/active">Active</a>
             </li>
             <li>
-                <a [class.selected]="status == 'complete'" href="#/completed">Completed</a>
+                <a (click)="viewModel.status = 'complete'" [class.selected]="viewModel.status == 'complete'" href="#/completed">Completed</a>
             </li>
         </ul>
-        <button id="clear-completed" (click)="clearCompletedTodos()" ng-show="completedCount">Clear completed</button>
+        <button id="clear-completed" (click)="clearCompletedTodos()" *ngIf="viewModel.completedTodos.length">Clear completed</button>
     </footer>
 </section>
 <footer id="info">

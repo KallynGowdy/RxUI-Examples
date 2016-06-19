@@ -38,3 +38,4 @@ typings
 dist/
 app/**/*.js
 app/**/*.d.ts
+app/**/*.js.map

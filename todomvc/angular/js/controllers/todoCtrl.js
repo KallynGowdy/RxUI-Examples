@@ -83,10 +83,7 @@
                     this,
                     "totalTodos"
                 ),
-                //todoViewModel.oneWayBind(this, "incompleteTodos", "remaining"),
                 todoViewModel.oneWayBind(this, "editedTodo", "editedTodo"),
-                // todoViewModel.oneWayBind(this, "visibleTodos", "todos"),
-                // todoViewModel.oneWayBind(this, "todos", "totalTodos"),
                 RxUI.ReactiveObject.bindObservable(
                     todoViewModel.areAllTodosComplete,
                     this,

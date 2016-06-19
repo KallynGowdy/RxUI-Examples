@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "rxjs": "5.0.0-beta.8",
-    "rxui": "^0.8.1"
+    "rxui": "^0.8.6"
   },
   "homepage": "https://github.com/KallynGowdy/RxUI/tree/create-examples/examples"
 }

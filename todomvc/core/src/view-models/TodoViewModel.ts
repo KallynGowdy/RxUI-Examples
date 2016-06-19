@@ -1,4 +1,4 @@
-import {ReactiveObject, ReactiveCommand} from "rxui";
+import {ReactiveObject, ReactiveCommand, ReactiveArray} from "rxui";
 import {Todo} from "../models/Todo";
 import {TodoStorage} from "../services/TodoStorage";
 import {Observable} from "rxjs/Rx";
@@ -24,74 +24,21 @@ export class TodoViewModel extends ReactiveObject {
     public toggleAllComplete: ReactiveCommand<{}, boolean>;
     public clearComplete: ReactiveCommand<{}, boolean>;
     public areAllTodosComplete: Observable<boolean>;
-
-    public get completedTodos(): Todo[] {
-        return this.get("completedTodos");
-    }
-    public get incompleteTodos(): Todo[] {
-        return this.get("incompleteTodos");
-    }
-    public get visibleTodos(): Todo[] {
-        return this.get("visibleTodos");
-    }
-
-    /**
-     * Gets the array of TODOs that are being presented by this view model.
-     */
-    public get todos(): Todo[] {
-        return this.get("todos");
-    }
-
-    /**
-     * Sets the array of TODOs that are being presented by this view model.
-     */
-    public set todos(todos: Todo[]) {
-        this.set("todos", todos);
-    }
-
-    /**
-     * Gets the TODO that is currently being edited.
-     */
-    public get editedTodo(): Todo {
-        return this.get("editedTodo");
-    }
-
-    /**
-     * Sets the TODO that is currently being edited.
-     */
-    public set editedTodo(todo: Todo) {
-        this.set("editedTodo", todo);
-    }
-
-    /**
-     * Gets the TODO that is being created.
-     */
-    public get newTodo(): Todo {
-        return this.get("newTodo");
-    }
-
-    /**
-     * Sets the TODO that is being created.
-     */
-    public set newTodo(todo: Todo) {
-        this.set("newTodo", todo);
-    }
-
-    public get status(): string {
-        return this.get("status");
-    }
+    public completedTodos: ReactiveArray<Todo>;
+    public incompleteTodos: ReactiveArray<Todo>;
+    public visibleTodos: ReactiveArray<Todo>;
+    public get todos(): ReactiveArray<Todo> { return this.get("todos"); }
+    public set todos(todos: ReactiveArray<Todo>) { this.set("todos", todos); }
+    public get editedTodo(): Todo { return this.get("editedTodo"); }
+    public set editedTodo(todo: Todo) { this.set("editedTodo", todo); }
+    public get newTodo(): Todo { return this.get("newTodo"); }
+    public set newTodo(todo: Todo) { this.set("newTodo", todo); }
+    public get status(): string { return this.get("status"); }
     public set status(status: string) {
-        // if (["all", "incomplete", "complete"].indexOf(status) < 0) {
-        //     throw new Error("status must be either 'all', 'incomplete' or 'complete'");
-        // }
+        if (["all", "incomplete", "complete"].indexOf(status) < 0) {
+            throw new Error("status must be either 'all', 'incomplete' or 'complete'");
+        }
         this.set("status", status);
-    }
-
-    /**
-     * Gets an observable that resolves with whenever a TODO is being edited.
-     */
-    public isEditingAsync(): Observable<boolean> {
-        return this.whenAnyValue(vm => vm.editedTodo).map(todo => todo != null);
     }
 
     /**
@@ -107,12 +54,11 @@ export class TodoViewModel extends ReactiveObject {
         this._store = todoStore;
         this.editedTodo = null;
         this.newTodo = new Todo();
-        this.set("completedTodos", []);
-        this.set("incompleteTodos", []);
-        this.todos = [];
-
+        this.todos = new ReactiveArray<Todo>();
+        this.completedTodos = this.todos.derived.whenAnyItemProperty().filter(t => t.completed).build();
+        this.incompleteTodos = this.todos.derived.whenAnyItemProperty().filter(t => !t.completed).build();
         this.save = ReactiveCommand.createFromTask((a) => {
-            return this._store.putTodos(this.todos);
+            return this._store.putTodos(this.todos.toArray());
         });
 
         var isNotSaving = this.save.isExecuting.map(executing => !executing);
@@ -121,24 +67,13 @@ export class TodoViewModel extends ReactiveObject {
             return this._store.getTodos();
         });
         this.loadTodos.results.subscribe(todos => {
-            this.todos = todos;
+            this.todos.splice(0, this.todos.length, ...todos);
         });
-        this.whenAnyValue(vm => vm.todos)
-            .filter(todos => todos !== null)
-            .map(todos => todos.filter(t => t.completed))
-            .subscribe(completed => this.set("completedTodos", completed));
-        this.whenAnyValue(vm => vm.todos)
-            .filter(todos => todos !== null)
-            .map(todos => todos.filter(t => !t.completed))
-            .subscribe(incomplete => this.set("incompleteTodos", incomplete));
 
         this.deleteTodo = ReactiveCommand.createFromObservable((a: Todo) => {
             var todoIndex = this.todos.indexOf(a);
             if (todoIndex >= 0) {
-                // TODO: Improve to notify via an observable array
                 this.todos.splice(todoIndex, 1);
-                this.todos = this.todos.slice();
-
                 return this.save.execute();
             }
             return Observable.of(false);
@@ -146,15 +81,11 @@ export class TodoViewModel extends ReactiveObject {
 
         this.toggleTodo = ReactiveCommand.createFromObservable((todo: Todo) => {
             todo.completed = !todo.completed;
-            this.todos = this.todos.slice();
             return this.save.execute();
         }, isNotSaving);
 
-        var hasValidNewTodo = this.whenAnyValue(vm => {
-            return vm.newTodo.title;
-        }).map(title => {
-            return this.isValidTitle(title)
-        });
+        var hasValidNewTodo = this.whenAnyValue(vm => vm.newTodo.title)
+            .map(title => this.isValidTitle(title));
 
         var canAddTodo = Observable.combineLatest(
             hasValidNewTodo,
@@ -164,7 +95,6 @@ export class TodoViewModel extends ReactiveObject {
         this.addTodo = ReactiveCommand.createFromObservable((a) => {
             this.todos.unshift(this.newTodo.copy());
             this.resetNewTodo();
-            this.todos = this.todos.slice();
             return this.save.execute();
         }, canAddTodo);
 
@@ -198,21 +128,17 @@ export class TodoViewModel extends ReactiveObject {
             return true;
         }, canUndo);
 
-        var areAllComplete = this.whenAnyValue(vm => vm.todos)
-            .filter(todos => todos !== null)
-            .map(todos => todos.every(t => t.completed));
-        var hasTodos = this.whenAnyValue(vm => vm.todos)
-            .filter(todos => todos !== null)
-            .map(todos => todos.length > 0);
+        var areAllComplete = this.todos.computed.every(t => t.completed);
+        var hasTodos = this.todos.whenAnyValue(t => t.length).map(length => length > 0);
         var canMarkAllComplete = Observable.combineLatest(hasTodos, areAllComplete, isNotSaving, (hasTodos, complete, notSaving) => hasTodos && !complete && notSaving);
         var canMarkAllIncomplete = Observable.combineLatest(hasTodos, areAllComplete, isNotSaving, (hasTodos, complete, notSaving) => hasTodos && complete && notSaving);
+        this.areAllTodosComplete = Observable.zip(hasTodos, areAllComplete, (hasTodos, complete) => hasTodos && complete);
 
         this.markAllComplete = ReactiveCommand.createFromObservable(a => {
             var completedTodos = this.todos;
             completedTodos.forEach(t => {
                 t.completed = true;
             });
-            this.todos = completedTodos.slice();
             return this.save.execute();
         }, canMarkAllComplete);
 
@@ -221,7 +147,6 @@ export class TodoViewModel extends ReactiveObject {
             incompleteTodos.forEach(t => {
                 t.completed = false;
             });
-            this.todos = incompleteTodos.slice();
             return this.save.execute();
         }, canMarkAllIncomplete);
 
@@ -234,16 +159,14 @@ export class TodoViewModel extends ReactiveObject {
             }
         }, isNotSaving);
 
-        this.areAllTodosComplete = Observable.zip(hasTodos, areAllComplete, (hasTodos, complete) => hasTodos && complete);
         this.clearComplete = ReactiveCommand.createFromObservable(a => {
             var todos = this.todos;
             for (var i = todos.length - 1; i >= 0; i--) {
-                var t = todos[i];
+                var t = todos.getItem(i);
                 if (t.completed) {
                     todos.splice(i, 1);
                 }
             }
-            this.todos = todos.slice();
             return this.save.execute();
         }, isNotSaving);
 
@@ -253,9 +176,9 @@ export class TodoViewModel extends ReactiveObject {
                 if (args.status === "all") {
                     return args.todos;
                 } else if (args.status === "complete") {
-                    return args.todos.filter(t => t.completed);
+                    return args.todos.derived.whenAnyItemProperty().filter(t => t.completed).build();
                 } else {
-                    return args.todos.filter(t => !t.completed);
+                    return args.todos.derived.whenAnyItemProperty().filter(t => !t.completed).build();
                 }
             }).subscribe(todos => {
                 this.set("visibleTodos", todos);

@@ -34,55 +34,70 @@
             });
 
             this.addTodo = function () {
-                todoViewModel.addTodo.invokeAsync().subscribe();
+                todoViewModel.addTodo.invoke().subscribe();
             };
 
             this.editTodo = function (todo) {
-                todoViewModel.editTodo.invokeAsync(todo).subscribe();
+                todoViewModel.editTodo.invoke(todo).subscribe();
             };
 
             this.saveEdits = function (todo, index) {
-                todoViewModel.finishEditing.invokeAsync().subscribe();
+                todoViewModel.finishEditing.invoke().subscribe();
             };
 
             this.revertEdits = function (todo, event) {
-                todoViewModel.undo.invokeAsync().subscribe();
+                todoViewModel.undo.invoke().subscribe();
             };
 
             this.removeTodo = function (todo) {
-                todoViewModel.deleteTodo.invokeAsync(todo).subscribe();
+                todoViewModel.deleteTodo.invoke(todo).subscribe();
             };
 
             this.toggleCompleted = function (todo) {
-                todoViewModel.toggleTodo.invokeAsync(todo).subscribe();
+                todoViewModel.toggleTodo.invoke(todo).subscribe();
             };
 
             this.clearCompletedTodos = function () {
-                todoViewModel.clearComplete.invokeAsync().subscribe();
+                todoViewModel.clearComplete.invoke().subscribe();
             };
 
             this.markAll = function () {
-                todoViewModel.toggleAllComplete.invokeAsync().subscribe();
+                todoViewModel.toggleAllComplete.invoke().subscribe();
             };
 
             var d = [
                 todoViewModel.bind(this, "newTodo.title", "newTodo"),
                 todoViewModel.bind(this, "status", "status"),
-                todoViewModel.oneWayBind(this, "incompleteTodos", "remaining"),
+                RxUI.ReactiveObject.bindObservable(
+                    todoViewModel.incompleteTodos.toObservable(),
+                    this,
+                    "remaining"
+                ),
+                RxUI.ReactiveObject.bindObservable(
+                    todoViewModel.whenAnyValue("visibleTodos").map(t => t.toObservable()).switch(),
+                    this,
+                    "todos"
+                ),
+                RxUI.ReactiveObject.bindObservable(
+                    todoViewModel.todos.toObservable(),
+                    this,
+                    "totalTodos"
+                ),
+                //todoViewModel.oneWayBind(this, "incompleteTodos", "remaining"),
                 todoViewModel.oneWayBind(this, "editedTodo", "editedTodo"),
-                todoViewModel.oneWayBind(this, "visibleTodos", "todos"),
-                todoViewModel.oneWayBind(this, "todos", "totalTodos"),
+                // todoViewModel.oneWayBind(this, "visibleTodos", "todos"),
+                // todoViewModel.oneWayBind(this, "todos", "totalTodos"),
                 RxUI.ReactiveObject.bindObservable(
                     todoViewModel.areAllTodosComplete,
                     this,
                     "allChecked"),
-                todoViewModel.loadTodos.invokeAsync().subscribe()
+                todoViewModel.loadTodos.invoke().subscribe()
             ];
-            
-            $scope.$on("$destroy", function() {
-               d.forEach(function(sub) {
-                   sub.unsubscribe();
-               });
+
+            $scope.$on("$destroy", function () {
+                d.forEach(function (sub) {
+                    sub.unsubscribe();
+                });
             });
         });
 })();

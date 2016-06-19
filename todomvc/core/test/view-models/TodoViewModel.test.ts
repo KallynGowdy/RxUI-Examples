@@ -36,9 +36,8 @@ export function register() {
                 var viewModel = new TodoViewModel(store);
 
                 viewModel.loadTodos.execute().subscribe(t => {
-                    expect(viewModel.todos).to.equal(todos);
-                    done();
-                }, err => done(err));
+                    expect(viewModel.todos.getItem(0)).to.equal(todos[0]);
+                }, err => done(err), () => done());
             });
         });
 
@@ -52,7 +51,7 @@ export function register() {
         describe("#addTodo()", () => {
             it("should not do anything if newTodo does not have a title", () => {
                 var viewModel = new TodoViewModel(<any>{});
-                viewModel.todos = ReactiveArray.from([]);
+                viewModel.todos.push(...[]);
                 expect(viewModel.todos.length).to.equal(0);
                 viewModel.addTodo.invoke().subscribe();
                 expect(viewModel.todos.length).to.equal(0);
@@ -62,13 +61,13 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(true))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from([]);
+                viewModel.todos.push(...[]);
                 viewModel.newTodo.title = "Title";
                 expect(viewModel.todos.length).to.equal(0);
                 viewModel.addTodo.invoke().first().subscribe(result => {
                     expect(result).to.be.true;
                     expect(viewModel.todos.length).to.equal(1);
-                    expect(viewModel.todos[0].title).to.equal("Title");
+                    expect(viewModel.todos.getItem(0).title).to.equal("Title");
                     expect(service.putTodos.callCount).to.equal(1);
                 }, err => done(err), () => done());
             });
@@ -77,25 +76,24 @@ export function register() {
                     putTodos: (todos) => Promise.resolve(true)
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from([]);
                 viewModel.newTodo.title = "Title";
-                
+
                 expect(viewModel.todos.length).to.equal(0);
                 viewModel.addTodo.invoke().subscribe(result => {
                     expect(viewModel.incompleteTodos.length).to.equal(1);
-                    expect(viewModel.incompleteTodos[0].title).to.equal("Title");
+                    expect(viewModel.incompleteTodos.getItem(0).title).to.equal("Title");
                     done();
                 }, err => done(err));
             });
         });
-        
+
         describe("#editTodo", () => {
-           it("should set editedTodo to the given todo", () => {
-               var viewModel = new TodoViewModel(<any>{});
-               var t = new Todo();
-               viewModel.editTodo.execute(t).subscribe();
-               expect(viewModel.editedTodo).to.equal(t);
-           });
+            it("should set editedTodo to the given todo", () => {
+                var viewModel = new TodoViewModel(<any>{});
+                var t = new Todo();
+                viewModel.editTodo.execute(t).subscribe();
+                expect(viewModel.editedTodo).to.equal(t);
+            });
         });
 
         describe("#toggleTodo()", () => {
@@ -107,7 +105,7 @@ export function register() {
                     putTodos: Sinon.spy()
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
 
                 viewModel.toggleTodo.execute(todos[0]);
                 expect(service.putTodos.callCount).to.equal(1);
@@ -121,7 +119,7 @@ export function register() {
                 var viewModel = new TodoViewModel(<any>{
                     putTodos: () => Promise.resolve(true)
                 });
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
 
                 viewModel.toggleTodo.invoke(todos[0]).take(1).subscribe(() => {
                     expect(todos[0].completed).to.be.true;
@@ -135,7 +133,7 @@ export function register() {
                 var viewModel = new TodoViewModel(<any>{
                     putTodos: () => Promise.resolve(true)
                 });
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
 
                 viewModel.toggleTodo.invoke(todos[0]).take(1).subscribe(() => {
                     expect(todos[0].completed).to.be.false;
@@ -149,20 +147,20 @@ export function register() {
                 var viewModel = new TodoViewModel(<any>{
                     putTodos: () => Promise.resolve(true)
                 });
-                viewModel.todos = ReactiveArray.from(todos);
-                
+                viewModel.todos.push(...todos);
+
                 viewModel.toggleTodo.invoke(todos[0]).subscribe(() => {
                     expect(viewModel.completedTodos.length).to.equal(1);
-                    expect(viewModel.completedTodos[0].title).to.equal("Todo");
+                    expect(viewModel.completedTodos.getItem(0).title).to.equal("Todo");
                     done();
                 }, err => done(err));
             });
         });
-        
+
         describe("#todos.completed", () => {
-           it("should detect when a todo is completed and update the incompleteTodos", (done) => {
-               done();
-           });
+            it("should detect when a todo is completed and update the incompleteTodos", (done) => {
+                done();
+            });
         });
 
         describe("#deleteTodo", () => {
@@ -176,7 +174,7 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(false))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
 
                 viewModel.deleteTodo.invoke(missingTodo).first().subscribe(deleted => {
                     expect(deleted).to.be.false;
@@ -194,15 +192,14 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(true))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
 
                 viewModel.deleteTodo.invoke(todos[0]).first().subscribe(deleted => {
                     expect(deleted).to.be.true;
-                    expect(todos.length).to.equal(1);
-                    expect(todos[0].title).to.equal("Other");
+                    expect(viewModel.todos.length).to.equal(1);
+                    expect(viewModel.todos.getItem(0).title).to.equal("Other");
                     expect(service.putTodos.called).to.be.true;
-                    done();
-                });
+                }, err => done(err), () => done());
             });
         });
 
@@ -215,7 +212,7 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(true))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
 
                 viewModel.save.invoke().first().subscribe(saved => {
                     expect(saved).to.equal(true);
@@ -245,8 +242,8 @@ export function register() {
 
                 viewModel.loadTodos.execute().subscribe(todos => {
                     expect(viewModel.completedTodos.length).to.equal(2);
-                    expect(viewModel.completedTodos[0]).to.equal(todos[0]);
-                    expect(viewModel.completedTodos[1]).to.equal(todos[2]);
+                    expect(viewModel.completedTodos.getItem(0)).to.equal(todos[0]);
+                    expect(viewModel.completedTodos.getItem(1)).to.equal(todos[2]);
                     done();
                 }, err => done(err));
             });
@@ -271,8 +268,8 @@ export function register() {
 
                 viewModel.loadTodos.execute().subscribe(todos => {
                     expect(viewModel.incompleteTodos.length).to.equal(2);
-                    expect(viewModel.incompleteTodos[0]).to.equal(todos[1]);
-                    expect(viewModel.incompleteTodos[1]).to.equal(todos[3]);
+                    expect(viewModel.incompleteTodos.getItem(0)).to.equal(todos[1]);
+                    expect(viewModel.incompleteTodos.getItem(1)).to.equal(todos[3]);
                     done();
                 }, err => done(err));
             });
@@ -290,14 +287,14 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(true))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
                 viewModel.markAllComplete.execute().subscribe(todos => {
                     expect(viewModel.incompleteTodos.length).to.equal(0);
                     expect(viewModel.completedTodos.length).to.equal(4);
-                    expect(viewModel.todos[0].completed).to.be.true;
-                    expect(viewModel.todos[1].completed).to.be.true;
-                    expect(viewModel.todos[2].completed).to.be.true;
-                    expect(viewModel.todos[3].completed).to.be.true;
+                    expect(viewModel.todos.getItem(0).completed).to.be.true;
+                    expect(viewModel.todos.getItem(1).completed).to.be.true;
+                    expect(viewModel.todos.getItem(2).completed).to.be.true;
+                    expect(viewModel.todos.getItem(3).completed).to.be.true;
                     done();
                 }, err => done(err));
             });
@@ -309,7 +306,7 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(true))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
                 viewModel.markAllComplete.execute().subscribe(todos => {
                     expect(service.putTodos.callCount).to.equal(1);
                     done();
@@ -320,7 +317,7 @@ export function register() {
                     new Todo("Not So", true)
                 ];
                 var viewModel = new TodoViewModel(null);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
                 viewModel.markAllComplete.canExecuteNow().subscribe(canExecute => {
                     expect(canExecute).to.be.false;
                     done();
@@ -330,7 +327,7 @@ export function register() {
                 var todos: Todo[] = [
                 ];
                 var viewModel = new TodoViewModel(null);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
                 viewModel.markAllComplete.canExecuteNow().subscribe(canExecute => {
                     expect(canExecute).to.be.false;
                     done();
@@ -349,14 +346,14 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(true))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
                 viewModel.markAllIncomplete.execute().subscribe(todos => {
                     expect(viewModel.incompleteTodos.length).to.equal(4);
                     expect(viewModel.completedTodos.length).to.equal(0);
-                    expect(viewModel.todos[0].completed).to.be.false;
-                    expect(viewModel.todos[1].completed).to.be.false;
-                    expect(viewModel.todos[2].completed).to.be.false;
-                    expect(viewModel.todos[3].completed).to.be.false;
+                    expect(viewModel.todos.getItem(0).completed).to.be.false;
+                    expect(viewModel.todos.getItem(1).completed).to.be.false;
+                    expect(viewModel.todos.getItem(2).completed).to.be.false;
+                    expect(viewModel.todos.getItem(3).completed).to.be.false;
                     done();
                 }, err => done(err));
             });
@@ -368,7 +365,7 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(true))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
                 viewModel.markAllIncomplete.execute().subscribe(todos => {
                     expect(service.putTodos.callCount).to.equal(1);
                     done();
@@ -380,7 +377,7 @@ export function register() {
                     new Todo("Incomplete", false)
                 ];
                 var viewModel = new TodoViewModel(null);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
                 viewModel.markAllIncomplete.canExecuteNow().subscribe(canExecute => {
                     expect(canExecute).to.be.false;
                     done();
@@ -390,7 +387,7 @@ export function register() {
                 var todos: Todo[] = [
                 ];
                 var viewModel = new TodoViewModel(null);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
                 viewModel.markAllIncomplete.canExecuteNow().subscribe(canExecute => {
                     expect(canExecute).to.be.false;
                     done();
@@ -406,7 +403,7 @@ export function register() {
                 viewModel.areAllTodosComplete.skip(1).first().subscribe(complete => {
                     expect(complete).to.be.true;
                 }, err => done(err), () => done());
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
             });
             it("should resolve false when one or more of the todos are incomplete", (done) => {
                 var todos: Todo[] = [
@@ -416,7 +413,7 @@ export function register() {
                 viewModel.areAllTodosComplete.skip(1).first().subscribe(complete => {
                     expect(complete).to.be.false;
                 }, err => done(err), () => done());
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
             });
         });
         describe("#toggleAllComplete()", () => {
@@ -431,19 +428,19 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(true))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
                 viewModel.toggleAllComplete.execute().subscribe(todos => {
                     expect(viewModel.incompleteTodos.length).to.equal(0);
                     expect(viewModel.completedTodos.length).to.equal(4);
-                    expect(viewModel.todos[0].completed).to.be.true;
-                    expect(viewModel.todos[1].completed).to.be.true;
-                    expect(viewModel.todos[2].completed).to.be.true;
-                    expect(viewModel.todos[3].completed).to.be.true;
+                    expect(viewModel.todos.getItem(0).completed).to.be.true;
+                    expect(viewModel.todos.getItem(1).completed).to.be.true;
+                    expect(viewModel.todos.getItem(2).completed).to.be.true;
+                    expect(viewModel.todos.getItem(3).completed).to.be.true;
                     done();
                 }, err => done(err));
             });
             it("should mark all incomplete if all are complete", (done) => {
-               var todos: Todo[] = [
+                var todos: Todo[] = [
                     new Todo("Todo", true),
                     new Todo("Other", true),
                     new Todo("Great", true),
@@ -453,16 +450,15 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(true))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
                 viewModel.toggleAllComplete.execute().subscribe(todos => {
                     expect(viewModel.incompleteTodos.length).to.equal(4);
                     expect(viewModel.completedTodos.length).to.equal(0);
-                    expect(viewModel.todos[0].completed).to.be.false;
-                    expect(viewModel.todos[1].completed).to.be.false;
-                    expect(viewModel.todos[2].completed).to.be.false;
-                    expect(viewModel.todos[3].completed).to.be.false;
-                    done();
-                }, err => done(err)); 
+                    expect(viewModel.todos.getItem(0).completed).to.be.false;
+                    expect(viewModel.todos.getItem(1).completed).to.be.false;
+                    expect(viewModel.todos.getItem(2).completed).to.be.false;
+                    expect(viewModel.todos.getItem(3).completed).to.be.false;
+                }, err => done(err), () => done());
             });
             it("should call saveTodos() after execution", (done) => {
                 var todos: Todo[] = [
@@ -472,16 +468,15 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(true))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos);
+                viewModel.todos.push(...todos);
                 viewModel.toggleAllComplete.execute().subscribe(todos => {
                     expect(service.putTodos.callCount).to.equal(1);
-                    done();
-                }, err => done(err));
+                }, err => done(err), () => done());
             });
         });
         describe("#clearComplete()", () => {
-           it("should remove all of the complete todos from the list", (done) => {
-               var todos: Todo[] = [
+            it("should remove all of the complete todos from the list", (done) => {
+                var todos: Todo[] = [
                     new Todo("Todo", true),
                     new Todo("Other", false),
                     new Todo("Great", true),
@@ -491,16 +486,15 @@ export function register() {
                     putTodos: Sinon.stub().returns(Promise.resolve(true))
                 };
                 var viewModel = new TodoViewModel(<any>service);
-                viewModel.todos = ReactiveArray.from(todos.slice());
+                viewModel.todos.push(...todos.slice());
                 viewModel.clearComplete.execute().subscribe(cleared => {
-                   expect(viewModel.incompleteTodos.length).to.equal(2); 
-                   expect(viewModel.completedTodos.length).to.equal(0);
-                   expect(viewModel.todos.length).to.equal(2);
-                   expect(viewModel.todos[0]).to.equal(todos[1]);
-                   expect(viewModel.todos[1]).to.equal(todos[3]);
-                   done();
-                }, err => done(err));
-           });
+                    expect(viewModel.incompleteTodos.length).to.equal(2);
+                    expect(viewModel.completedTodos.length).to.equal(0);
+                    expect(viewModel.todos.length).to.equal(2);
+                    expect(viewModel.todos.getItem(0)).to.equal(todos[1]);
+                    expect(viewModel.todos.getItem(1)).to.equal(todos[3]);
+                }, err => done(err), () => done());
+            });
         });
     });
 }

@@ -71,6 +71,19 @@ export function register() {
                     expect(service.putTodos.callCount).to.equal(1);
                 }, err => done(err), () => done());
             });
+            it("should trim the whitespace from the title", (done) => {
+                var service = {
+                    putTodos: Sinon.stub().returns(Promise.resolve(true))
+                };
+                var viewModel = new TodoViewModel(<any>service);
+                viewModel.todos.push(...[]);
+                viewModel.newTodo.title = "Title \t\n";
+                expect(viewModel.todos.length).to.equal(0);
+                viewModel.addTodo.invoke().first().subscribe(result => {
+                    expect(result).to.be.true;
+                    expect(viewModel.todos.getItem(0).title).to.equal("Title");
+                }, err => done(err), () => done());
+            })
             it("should add the new todo to the incomplete todos list", (done) => {
                 var service = {
                     putTodos: (todos) => Promise.resolve(true)
@@ -95,7 +108,39 @@ export function register() {
                 expect(viewModel.editedTodo).to.equal(t);
             });
         });
-
+        describe("#finishEditing", () => {
+            it("should clear the editedTodo", () => {
+                var viewModel = new TodoViewModel(<any>{
+                    putTodos: () => Promise.resolve(true)
+                });
+                var t = new Todo("Todo");
+                viewModel.editTodo.execute(t).subscribe();
+                viewModel.finishEditing.execute().subscribe();
+                expect(viewModel.editedTodo).to.be.null;
+            });
+            it("should remove the editedTodo if the text is empty or whitespace", () => {
+                var viewModel = new TodoViewModel(<any>{
+                    putTodos: () => Promise.resolve(true)
+                });
+                var t = new Todo("Todo");
+                viewModel.todos.push(t);
+                viewModel.editTodo.execute(t).subscribe();
+                viewModel.editedTodo.title = " \t\n";
+                viewModel.finishEditing.execute().subscribe();
+                expect(viewModel.todos.length).to.equal(0);
+            });
+            it("shoud trim whitespace from the todo's title", () => {
+                var viewModel = new TodoViewModel(<any>{
+                    putTodos: () => Promise.resolve(true)
+                });
+                var t = new Todo("Todo");
+                viewModel.todos.push(t);
+                viewModel.editTodo.execute(t).subscribe();
+                viewModel.editedTodo.title = "Todo ";
+                viewModel.finishEditing.execute().subscribe();
+                expect(viewModel.todos.getItem(0).title).to.equal("Todo");
+            });
+        });
         describe("#toggleTodo()", () => {
             it("should call putTodos() on the TodoStorage service after call", () => {
                 var todos: Todo[] = [
@@ -395,25 +440,81 @@ export function register() {
             });
         });
         describe("#areAllTodosComplete", () => {
-            it("should resolve true when all the todos are complete and not empty", (done) => {
+            it("should be true when all the todos are complete and not empty", () => {
                 var todos: Todo[] = [
                     new Todo("Not So", true)
                 ];
                 var viewModel = new TodoViewModel(null);
-                viewModel.areAllTodosComplete.skip(1).first().subscribe(complete => {
-                    expect(complete).to.be.true;
-                }, err => done(err), () => done());
                 viewModel.todos.push(...todos);
+                expect(viewModel.areAllTodosComplete).to.be.true;
             });
-            it("should resolve false when one or more of the todos are incomplete", (done) => {
+            it("should resolve false when one or more of the todos are incomplete", () => {
                 var todos: Todo[] = [
                     new Todo("Not So", false)
                 ];
                 var viewModel = new TodoViewModel(null);
-                viewModel.areAllTodosComplete.skip(1).first().subscribe(complete => {
-                    expect(complete).to.be.false;
-                }, err => done(err), () => done());
                 viewModel.todos.push(...todos);
+                expect(viewModel.areAllTodosComplete).to.be.false;
+            });
+        });
+        describe("#visibleTodos", () => {
+            it("should hold all of the todos when status === 'all'", () => {
+                var todos: Todo[] = [
+                    new Todo("Stuff", true),
+                    new Todo("Others", false)
+                ];
+                var viewModel = new TodoViewModel(null);
+                viewModel.todos.push(...todos);
+                viewModel.status = "all";
+                expect(viewModel.visibleTodos[0]).to.equal(todos[0]);
+                expect(viewModel.visibleTodos[1]).to.equal(todos[1]);
+            });
+            it("should hold only incomplete todos when status === 'incomplete'", () => {
+                var todos: Todo[] = [
+                    new Todo("Stuff", true),
+                    new Todo("Others", false)
+                ];
+                var viewModel = new TodoViewModel(null);
+                viewModel.todos.push(...todos);
+                viewModel.status = "incomplete";
+                expect(viewModel.visibleTodos.length).to.equal(1);                
+                expect(viewModel.visibleTodos[0]).to.equal(todos[1]);
+            });
+            it("should hold only completed todos when status === 'complete'", () => {
+                var todos: Todo[] = [
+                    new Todo("Stuff", true),
+                    new Todo("Others", false)
+                ];
+                var viewModel = new TodoViewModel(null);
+                viewModel.todos.push(...todos);
+                viewModel.status = "complete";
+                expect(viewModel.visibleTodos.length).to.equal(1);
+                expect(viewModel.visibleTodos[0]).to.equal(todos[0]);
+            });
+        });
+        describe("#remainingText", () => {
+            it("should be singular when #incompleteTodos has 1 item", () => {
+                var todos: Todo[] = [
+                    new Todo("Stuff", false)
+                ];
+                var viewModel = new TodoViewModel(null);
+                viewModel.todos.push(...todos);
+                expect(viewModel.remainingText).to.equal("item left");
+            });
+            it("should be plural when #incompleteTodos has more than 1 item", () => {
+                var todos: Todo[] = [
+                    new Todo("Stuff", false),
+                    new Todo("Others", false)
+                ];
+                var viewModel = new TodoViewModel(null);
+                viewModel.todos.push(...todos);
+                expect(viewModel.remainingText).to.equal("items left");
+            });
+            it("should be plural when #incompleteTodos has no items", () => {
+                var todos: Todo[] = [];
+                var viewModel = new TodoViewModel(null);
+                viewModel.todos.push(...todos);
+                expect(viewModel.remainingText).to.equal("items left");
             });
         });
         describe("#toggleAllComplete()", () => {

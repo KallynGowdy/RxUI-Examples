@@ -23,9 +23,10 @@ export class TodoViewModel extends ReactiveObject {
     public markAllIncomplete: ReactiveCommand<{}, boolean>;
     public toggleAllComplete: ReactiveCommand<{}, boolean>;
     public clearComplete: ReactiveCommand<{}, boolean>;
-    public areAllTodosComplete: Observable<boolean>;
     public completedTodos: ReactiveArray<Todo>;
     public incompleteTodos: ReactiveArray<Todo>;
+    public get areAllTodosComplete(): boolean { return this.get("areAllTodosComplete"); }
+    public set areAllTodosComplete(value: boolean) { this.set("areAllTodosComplete", value); }
     public get todos(): ReactiveArray<Todo> { return this.get("todos"); }
     public set todos(todos: ReactiveArray<Todo>) { this.set("todos", todos); }
     public get editedTodo(): Todo { return this.get("editedTodo"); }
@@ -39,12 +40,11 @@ export class TodoViewModel extends ReactiveObject {
         }
         this.set("status", status);
     }
-    public get visibleTodos(): ReactiveArray<Todo> {
-        return this.get("visibleTodos");
-    }
-    public set visibleTodos(value: ReactiveArray<Todo>) {
-        this.set("visibleTodos", value);
-    }
+    private get _visibleTodos(): ReactiveArray<Todo> { return this.get("_visibleTodos"); }
+    private set _visibleTodos(value: ReactiveArray<Todo>) { this.set("_visibleTodos", value); }
+    public get visibleTodos(): Todo[] { return this.get("visibleTodos"); }
+    public get remainingText(): string { return this.get("remainingText"); }
+    public set remainingText(text: string) { this.set("remainingText", text); }
 
     /**
      * Determines whether the given title is a valid TODO Title.
@@ -60,6 +60,7 @@ export class TodoViewModel extends ReactiveObject {
         this.editedTodo = null;
         this.newTodo = new Todo();
         this.todos = new ReactiveArray<Todo>();
+        this.areAllTodosComplete = false;
         this.completedTodos = this.todos.derived.whenAnyItemProperty().filter(t => t.completed).build();
         this.incompleteTodos = this.todos.derived.whenAnyItemProperty().filter(t => !t.completed).build();
         this.save = ReactiveCommand.createFromTask((a) => {
@@ -98,6 +99,7 @@ export class TodoViewModel extends ReactiveObject {
             (validTodo, isNotSaving) => validTodo && isNotSaving);
 
         this.addTodo = ReactiveCommand.createFromObservable((a) => {
+            this.newTodo.title = this.newTodo.title.trim();
             this.todos.unshift(this.newTodo.copy());
             this.resetNewTodo();
             return this.save.execute();
@@ -111,6 +113,10 @@ export class TodoViewModel extends ReactiveObject {
 
         this.finishEditing = ReactiveCommand.createFromObservable(a => {
             if (this.editedTodo) {
+                this.editedTodo.title = this.editedTodo.title.trim();
+                if (this.editedTodo.title.length == 0) {
+                    return this.deleteTodo.execute(this.editedTodo);
+                }
                 this.editedTodo = null;
             }
             return this.save.execute().do(saved => {
@@ -137,7 +143,10 @@ export class TodoViewModel extends ReactiveObject {
         var hasTodos = this.todos.whenAnyValue(t => t.length).map(length => length > 0);
         var canMarkAllComplete = Observable.combineLatest(hasTodos, areAllComplete, isNotSaving, (hasTodos, complete, notSaving) => hasTodos && !complete && notSaving);
         var canMarkAllIncomplete = Observable.combineLatest(hasTodos, areAllComplete, isNotSaving, (hasTodos, complete, notSaving) => hasTodos && complete && notSaving);
-        this.areAllTodosComplete = Observable.zip(hasTodos, areAllComplete, (hasTodos, complete) => hasTodos && complete);
+        Observable.zip(hasTodos, areAllComplete, (hasTodos, complete) => hasTodos && complete)
+            .subscribe(complete => {
+                this.areAllTodosComplete = complete;
+            });
 
         this.markAllComplete = ReactiveCommand.createFromObservable(a => {
             var completedTodos = this.todos;
@@ -186,8 +195,17 @@ export class TodoViewModel extends ReactiveObject {
                     return args.todos.derived.whenAnyItemProperty().filter(t => !t.completed).build();
                 }
             }).subscribe(todos => {
-                this.visibleTodos = todos;
+                this._visibleTodos = todos;
             });
+        this.whenAnyValue(vm => vm._visibleTodos)
+            .map(arr => arr.toObservable())
+            .switch()
+            .subscribe(arr => {
+                this.set("visibleTodos", arr);
+            });
+        this.incompleteTodos.whenAnyValue(incomplete => incomplete.length)
+            .map(l => l === 1 ? 'item left' : 'items left')
+            .subscribe(text => this.remainingText = text);
         this.status = "all";
     }
 

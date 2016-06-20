@@ -16,31 +16,9 @@ import {ActivatedRoute, ROUTER_DIRECTIVES} from '@angular/router';
 })
 export class TodosComponent implements OnInit, OnDestroy {
     private disposables: Subscription[];
-    todos: Todo[];
-    allChecked: boolean;
-    remainingText: string;
 
     constructor(public viewModel: TodoViewModelService, private route: ActivatedRoute) {
         this.disposables = [
-            ReactiveObject.bindObservable(
-                this.viewModel
-                    .whenAnyValue(vm => vm.visibleTodos)
-                    .map(t => t.toObservable())
-                    .switch(),
-                this,
-                v => v.todos
-            ),
-            ReactiveObject.bindObservable(
-                this.viewModel.areAllTodosComplete,
-                this,
-                v => v.allChecked
-            ),
-            ReactiveObject.bindObservable(
-                this.viewModel.incompleteTodos.whenAnyValue(incomplete => incomplete.length)
-                    .map(l => l === 1 ? 'item left' : 'items left'),
-                this,
-                v => v.remainingText
-            ),
             this.viewModel.loadTodos.invoke().subscribe()
         ];
     }
@@ -49,7 +27,7 @@ export class TodosComponent implements OnInit, OnDestroy {
         this.viewModel.addTodo.invoke().subscribe();
     }
 
-    markAll(allChecked: boolean) {
+    markAll() {
         this.viewModel.toggleAllComplete.invoke().subscribe();
     }
 
@@ -65,7 +43,7 @@ export class TodosComponent implements OnInit, OnDestroy {
             } else if (status === 'completed') {
                 this.viewModel.status = 'complete';
             } else {
-                this.viewModel.status = status;
+                this.viewModel.status = status || this.viewModel.status;
             }
         }));
     }

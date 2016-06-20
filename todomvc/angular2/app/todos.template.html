@@ -6,19 +6,10 @@
         </form>
     </header>
     <section id="main" *ngIf="viewModel.visibleTodos.length">
-        <input id="toggle-all" type="checkbox" [(ngModel)]="allChecked" (keyup)="0" (change)="markAll(allChecked)">
+        <input id="toggle-all" type="checkbox" [(ngModel)]="viewModel.areAllTodosComplete" (keyup)="0" (change)="markAll()">
         <label for="toggle-all">Mark all as complete</label>
         <ul id="todo-list">
-            <li *ngFor="let todo of todos" [class.completed]="todo.completed" [class.editing]="todo == viewModel.editedTodo">
-                <!--<div class="view">
-                    <input class="toggle" type="checkbox" [checked]="todo.completed" (click)="toggleCompleted(todo)">
-                    <label (dblclick)="editTodo(todo)">{{todo.title}}</label>
-                    <button class="destroy" (click)="removeTodo(todo)"></button>
-                </div>
-                <form (submit)="saveEdits(todo, 'submit')">
-                    <input class="edit" ng-trim="false" [(ngModel)]="todo.title" (keyup.escape)="revertEdits(todo)" (blur)="saveEdits(todo, 'blur')"
-                        (focus)="todo == editedTodo">
-                </form>-->
+            <li *ngFor="let todo of viewModel.visibleTodos" [class.completed]="todo.completed" [class.editing]="todo == viewModel.editedTodo">
                 <todo-detail [todo]="todo"></todo-detail>
             </li>
         </ul>
@@ -26,7 +17,7 @@
     <footer id="footer" *ngIf="viewModel.todos.length">
         <span id="todo-count">
             <strong>{{viewModel.incompleteTodos.length}}</strong>
-            {{remainingText}}
+            {{viewModel.remainingText}}
 		</span>
         <ul id="filters">
             <li>

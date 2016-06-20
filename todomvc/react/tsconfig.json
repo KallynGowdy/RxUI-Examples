@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "sourceMap": true,
+        "module": "commonjs",
+        "target": "es5",
+        "jsx": "react",
+        "moduleResolution": "node"
+    },
+    "exclude": [
+        "node_modules",
+        "bower_components",
+        "jspm_packages"
+    ]
+}

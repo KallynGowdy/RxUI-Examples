@@ -1,0 +1,33 @@
+{
+  "name": "rxui-example-react",
+  "version": "1.0.0",
+  "description": "A TodoMVC Implementation Using RxUI and React",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && concurrently \"npm run tsc:w\" \"npm run lite\" ",
+    "lite": "lite-server",
+    "postinstall": "typings install",
+    "tsc": "tsc",
+    "tsc:w": "tsc -w",
+    "typings": "typings",
+    "build": "webpack"
+  },
+  "author": "Kallyn Gowdy",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^15.1.0",
+    "react-dom": "^15.1.0",
+    "rxui-example-core": "../core",
+    "todomvc-app-css": "^2.0.6",
+    "todomvc-common": "^1.0.2"
+  },
+  "devDependencies": {
+    "concurrently": "^2.1.0",
+    "lite-server": "^2.2.0",
+    "source-map-loader": "^0.1.5",
+    "ts-loader": "^0.8.2",
+    "typescript": "^1.8.10",
+    "typings": "^1.3.0",
+    "webpack": "^1.13.1"
+  }
+}

@@ -30,13 +30,13 @@
 		</span>
         <ul id="filters">
             <li>
-                <a (click)="viewModel.status = 'all'" [class.selected]="viewModel.status == 'all'" href="#/">All</a>
+                <a [routerLink]="['/all']" [class.selected]="viewModel.status == 'all'">All</a>
             </li>
             <li>
-                <a (click)="viewModel.status = 'incomplete'" [class.selected]="viewModel.status == 'incomplete'" href="#/active">Active</a>
+                <a [routerLink]="['/active']" [class.selected]="viewModel.status == 'incomplete'">Active</a>
             </li>
             <li>
-                <a (click)="viewModel.status = 'complete'" [class.selected]="viewModel.status == 'complete'" href="#/completed">Completed</a>
+                <a [routerLink]="['/completed']" [class.selected]="viewModel.status == 'complete'">Completed</a>
             </li>
         </ul>
         <button id="clear-completed" (click)="clearCompletedTodos()" *ngIf="viewModel.completedTodos.length">Clear completed</button>

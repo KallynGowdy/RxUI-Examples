@@ -20,7 +20,8 @@
     'rxui':                       { defaultExtension: 'js', main: 'index.js' },
     'rxui-example-core':          { defaultExtension: 'js', main: 'index.js' },
     'angular2-in-memory-web-api': { main: 'index.js', defaultExtension: 'js' },
-    'symbol-observable':          { main: 'index.js', defaultExtension: 'js' }
+    'symbol-observable':          { main: 'index.js', defaultExtension: 'js' },
+    '@angular/router':            { main: 'index.js', defaultExtension: 'js' } 
   };
   var ngPackageNames = [
     'common',
@@ -29,7 +30,7 @@
     'http',
     'platform-browser',
     'platform-browser-dynamic',
-    'router',
+    // 'router',
     'router-deprecated',
     'upgrade',
   ];

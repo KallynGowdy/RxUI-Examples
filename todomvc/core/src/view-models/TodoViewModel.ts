@@ -26,7 +26,6 @@ export class TodoViewModel extends ReactiveObject {
     public areAllTodosComplete: Observable<boolean>;
     public completedTodos: ReactiveArray<Todo>;
     public incompleteTodos: ReactiveArray<Todo>;
-    public visibleTodos: ReactiveArray<Todo>;
     public get todos(): ReactiveArray<Todo> { return this.get("todos"); }
     public set todos(todos: ReactiveArray<Todo>) { this.set("todos", todos); }
     public get editedTodo(): Todo { return this.get("editedTodo"); }
@@ -39,6 +38,12 @@ export class TodoViewModel extends ReactiveObject {
             throw new Error("status must be either 'all', 'incomplete' or 'complete'");
         }
         this.set("status", status);
+    }
+    public get visibleTodos(): ReactiveArray<Todo> {
+        return this.get("visibleTodos");
+    }
+    public set visibleTodos(value: ReactiveArray<Todo>) {
+        this.set("visibleTodos", value);
     }
 
     /**
@@ -181,7 +186,7 @@ export class TodoViewModel extends ReactiveObject {
                     return args.todos.derived.whenAnyItemProperty().filter(t => !t.completed).build();
                 }
             }).subscribe(todos => {
-                this.set("visibleTodos", todos);
+                this.visibleTodos = todos;
             });
         this.status = "all";
     }

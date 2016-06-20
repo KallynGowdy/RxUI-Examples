@@ -1,0 +1,54 @@
+<section id="todoapp">
+    <header id="header">
+        <h1>todos</h1>
+        <form id="todo-form" (submit)="addTodo()">
+            <input id="new-todo" placeholder="What needs to be done?" [(ngModel)]="viewModel.newTodo.title" [disabled]="saving" autofocus>
+        </form>
+    </header>
+    <section id="main" *ngIf="viewModel.visibleTodos.length">
+        <input id="toggle-all" type="checkbox" [(ngModel)]="allChecked" (keyup)="0" (change)="markAll(allChecked)">
+        <label for="toggle-all">Mark all as complete</label>
+        <ul id="todo-list">
+            <li *ngFor="let todo of todos" [class.completed]="todo.completed" [class.editing]="todo == viewModel.editedTodo">
+                <!--<div class="view">
+                    <input class="toggle" type="checkbox" [checked]="todo.completed" (click)="toggleCompleted(todo)">
+                    <label (dblclick)="editTodo(todo)">{{todo.title}}</label>
+                    <button class="destroy" (click)="removeTodo(todo)"></button>
+                </div>
+                <form (submit)="saveEdits(todo, 'submit')">
+                    <input class="edit" ng-trim="false" [(ngModel)]="todo.title" (keyup.escape)="revertEdits(todo)" (blur)="saveEdits(todo, 'blur')"
+                        (focus)="todo == editedTodo">
+                </form>-->
+                <todo-detail [todo]="todo"></todo-detail>
+            </li>
+        </ul>
+    </section>
+    <footer id="footer" *ngIf="viewModel.todos.length">
+        <span id="todo-count">
+            <strong>{{viewModel.incompleteTodos.length}}</strong>
+            {{remainingText}}
+		</span>
+        <ul id="filters">
+            <li>
+                <a [routerLink]="['/all']" [class.selected]="viewModel.status == 'all'">All</a>
+            </li>
+            <li>
+                <a [routerLink]="['/active']" [class.selected]="viewModel.status == 'incomplete'">Active</a>
+            </li>
+            <li>
+                <a [routerLink]="['/completed']" [class.selected]="viewModel.status == 'complete'">Completed</a>
+            </li>
+        </ul>
+        <button id="clear-completed" (click)="clearCompletedTodos()" *ngIf="viewModel.completedTodos.length">Clear completed</button>
+    </footer>
+</section>
+<footer id="info">
+    <p>Double-click to edit a todo</p>
+    <!--<p>Credits:
+        <a href="http://twitter.com/cburgdorf">Christoph Burgdorf</a>,
+        <a href="http://ericbidelman.com">Eric Bidelman</a>,
+        <a href="http://jacobmumm.com">Jacob Mumm</a> and
+        <a href="http://blog.igorminar.com">Igor Minar</a>
+      </p>
+      <p>Part of <a href="http://todomvc.com">TodoMVC</a></p>-->
+</footer>

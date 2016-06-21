@@ -4,17 +4,19 @@
   "description": "A TodoMVC Implementation Using RxUI and React",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && concurrently \"npm run tsc:w\" \"npm run lite\" ",
+    "start": "npm run build && concurrently \"npm run build:w\" \"npm run lite\" ",
     "lite": "lite-server",
     "postinstall": "typings install",
     "tsc": "tsc",
     "tsc:w": "tsc -w",
     "typings": "typings",
-    "build": "webpack"
+    "build": "webpack",
+    "build:w": "webpack --watch"
   },
   "author": "Kallyn Gowdy",
   "license": "ISC",
   "dependencies": {
+    "classnames": "^2.2.5",
     "react": "^15.1.0",
     "react-dom": "^15.1.0",
     "rxui-example-core": "../core",

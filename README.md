@@ -30,7 +30,7 @@ The example applications are modeled after the famous [TodoMVC](http://todomvc.c
     - [ ] `NativeScript`*
         - An implementation of TodoMVC with [NativeScript](https://www.nativescript.org/)
     
-_*Planned for Development_
+_*Not Implemented_
     
 All of the implementations will use the `core` project to drive the logic of the application. 
 This way, it can be quite easy to guarentee the same behavior across all of the different implementations.

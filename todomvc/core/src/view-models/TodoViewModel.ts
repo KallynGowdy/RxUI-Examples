@@ -25,26 +25,15 @@ export class TodoViewModel extends ReactiveObject {
     public clearComplete: ReactiveCommand<{}, boolean>;
     public completedTodos: ReactiveArray<Todo>;
     public incompleteTodos: ReactiveArray<Todo>;
-    public get areAllTodosComplete(): boolean { return this.get("areAllTodosComplete"); }
-    public set areAllTodosComplete(value: boolean) { this.set("areAllTodosComplete", value); }
-    public get todos(): ReactiveArray<Todo> { return this.get("todos"); }
-    public set todos(todos: ReactiveArray<Todo>) { this.set("todos", todos); }
-    public get editedTodo(): Todo { return this.get("editedTodo"); }
-    public set editedTodo(todo: Todo) { this.set("editedTodo", todo); }
-    public get newTodo(): Todo { return this.get("newTodo"); }
-    public set newTodo(todo: Todo) { this.set("newTodo", todo); }
-    public get status(): string { return this.get("status"); }
-    public set status(status: string) {
-        if (["all", "incomplete", "complete"].indexOf(status) < 0) {
-            throw new Error("status must be either 'all', 'incomplete' or 'complete'");
-        }
-        this.set("status", status);
-    }
-    private get _visibleTodos(): ReactiveArray<Todo> { return this.get("_visibleTodos"); }
-    private set _visibleTodos(value: ReactiveArray<Todo>) { this.set("_visibleTodos", value); }
+
+    public areAllTodosComplete: boolean;
+    public todos: ReactiveArray<Todo>;
+    public editedTodo: Todo;
+    public newTodo: Todo;
+    public status: string;
+    public remainingText: string;
+    private _visibleTodos: ReactiveArray<Todo>;
     public get visibleTodos(): Todo[] { return this.get("visibleTodos"); }
-    public get remainingText(): string { return this.get("remainingText"); }
-    public set remainingText(text: string) { this.set("remainingText", text); }
 
     /**
      * Determines whether the given title is a valid TODO Title.
@@ -55,7 +44,15 @@ export class TodoViewModel extends ReactiveObject {
     }
 
     constructor(todoStore: TodoStorage) {
-        super();
+        super([
+            "areAllTodosComplete",
+            "todos",
+            "editedTodo",
+            "newTodo",
+            "status",
+            "_visibleTodos",
+            "remainingText"
+        ]);
         this._store = todoStore;
         this.editedTodo = null;
         this.newTodo = new Todo();
@@ -81,8 +78,9 @@ export class TodoViewModel extends ReactiveObject {
             if (todoIndex >= 0) {
                 this.todos.splice(todoIndex, 1);
                 return this.save.execute();
+            } else {
+                return Observable.of(false);
             }
-            return Observable.of(false);
         });
 
         this.toggleTodo = ReactiveCommand.createFromObservable((todo: Todo) => {
